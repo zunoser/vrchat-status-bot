@@ -1,10 +1,11 @@
 import WebSocket from "ws";
-import { type WebSocketResponse, WebSocketResponseSchema } from "./websocket.type";
+import { type WebSocketResponse, WebSocketResponseSchema } from "./websocket.type.ts";
 
 type WebSocketEvent = WebSocketResponse["type"];
-type WebSocketContent<TEvent extends WebSocketEvent> = Extract<WebSocketResponse, { type: TEvent }>["content"];
+export type WebSocketContent<TEvent extends WebSocketEvent> = Extract<WebSocketResponse, { type: TEvent }>["content"];
+export type HandlerType<TEvent extends WebSocketEvent> = (content: WebSocketContent<TEvent>) => void;
 type WebSocketHandlers = {
-  [TEvent in WebSocketEvent]: Array<(content: WebSocketContent<TEvent>) => void>;
+  [TEvent in WebSocketEvent]: Array<HandlerType<TEvent>>;
 };
 
 const parseJson = (rawData: string): unknown | undefined => {
