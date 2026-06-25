@@ -61,7 +61,7 @@ export const UserSchema = z.object({
   worldId: z.string().optional(),
 });
 
-export const WebSocketResponseSchema = z.discriminatedUnion("type", [
+export const KnownWebSocketResponseSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("friend-online"),
     content: z.strictObject({
@@ -80,5 +80,12 @@ export const WebSocketResponseSchema = z.discriminatedUnion("type", [
     })
   })
 ])
-export type WebSocketResponse = z.infer<typeof WebSocketResponseSchema>;
 
+export type KnownWebSocketResponse = z.infer<typeof KnownWebSocketResponseSchema>;
+export type WebSocketEvent = KnownWebSocketResponse["type"];
+
+export const WebSocketResponseSchema = z.looseObject({
+  type: z.string(),
+  content: z.unknown().optional(),
+});
+export type WebSocketResponse = z.infer<typeof WebSocketResponseSchema>;
