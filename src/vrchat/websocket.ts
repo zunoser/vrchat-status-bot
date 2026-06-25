@@ -68,6 +68,9 @@ export const vrcWS = () => {
       handler: (content: WebSocketContent<TEvent>) => void
     ) => {
       handlers[event].push(handler);
+    },
+    close: () => {
+      connection.close()
     }
   }
 }
