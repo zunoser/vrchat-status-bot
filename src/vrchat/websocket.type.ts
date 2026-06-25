@@ -1,5 +1,15 @@
 import * as z from "zod";
 
+const parseJsonObject = (value: unknown): unknown => {
+  if (typeof value !== "string") return value;
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+};
+
 const BadgeSchema = z.object({
   assignedAt: z.string().nullable().optional(),
   badgeDescription: z.string(),
@@ -61,24 +71,44 @@ export const UserSchema = z.object({
   worldId: z.string().optional(),
 });
 
-export const WebSocketResponseSchema = z.discriminatedUnion("type", [
+export const KnownWebSocketResponseSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("friend-online"),
-    content: z.strictObject({
-      userId: z.string(),
-      platform: z.string(),
-      location: z.string(),
-      canRequestInvite: z.boolean(),
-      user: UserSchema
-    })
+    content: z.preprocess(
+      parseJsonObject,
+      z.strictObject({
+        userId: z.string(),
+        platform: z.string(),
+        location: z.string(),
+        canRequestInvite: z.boolean(),
+        user: UserSchema,
+      }),
+    ),
   }),
   z.object({
     type: z.literal("friend-offline"),
-    content: z.strictObject({
-      userId: z.string(),
-      platform: z.string()
-    })
-  })
-])
-export type WebSocketResponse = z.infer<typeof WebSocketResponseSchema>;
+    content: z.preprocess(
+      parseJsonObject,
+      z.strictObject({
+        userId: z.string(),
+        platform: z.string(),
+      }),
+    ),
+  }),
+]);
 
+const UnknownWebSocketResponseSchema = z.object({
+  type: z.string().refine(
+    (type) => !["friend-online", "friend-offline"].includes(type),
+    { message: "known type is not allowed here" },
+  ),
+  content: z.unknown(),
+});
+
+export const WebSocketResponseSchema = z.union([
+  KnownWebSocketResponseSchema,
+  UnknownWebSocketResponseSchema,
+]);
+
+export type KnownWebSocketResponse = z.infer<typeof KnownWebSocketResponseSchema>;
+export type WebSocketResponse = z.infer<typeof WebSocketResponseSchema>;

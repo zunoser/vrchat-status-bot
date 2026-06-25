@@ -1,8 +1,12 @@
 import WebSocket from "ws";
-import { type WebSocketResponse, WebSocketResponseSchema } from "./websocket.type.ts";
+import {
+  type KnownWebSocketResponse,
+  KnownWebSocketResponseSchema,
+  WebSocketResponseSchema,
+} from "./websocket.type.ts";
 
-type WebSocketEvent = WebSocketResponse["type"];
-export type WebSocketContent<TEvent extends WebSocketEvent> = Extract<WebSocketResponse, { type: TEvent }>["content"];
+type WebSocketEvent = KnownWebSocketResponse["type"];
+export type WebSocketContent<TEvent extends WebSocketEvent> = Extract<KnownWebSocketResponse, { type: TEvent }>["content"];
 export type HandlerType<TEvent extends WebSocketEvent> = (content: WebSocketContent<TEvent>) => void;
 type WebSocketHandlers = {
   [TEvent in WebSocketEvent]: Array<HandlerType<TEvent>>;
@@ -44,7 +48,10 @@ export const vrcWS = () => {
     if (!parsed.success) {
       console.error(parsed.error)
     } else {
-      const data = parsed.data;
+      const knownParsed = KnownWebSocketResponseSchema.safeParse(parsed.data);
+      if (!knownParsed.success) return;
+
+      const data = knownParsed.data;
       switch (data.type) {
         case "friend-online": {
           for (const x of handlers["friend-online"]) {
