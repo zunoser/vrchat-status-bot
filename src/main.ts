@@ -16,9 +16,6 @@ vrchatClient.on("error", (error) => {
 });
 
 vrchatClient.on("friend-online", (content) => {
-  if (!content.user) {
-    return;
-  }
   console.log(`Online: ${content.user.displayName}`);
 });
 
