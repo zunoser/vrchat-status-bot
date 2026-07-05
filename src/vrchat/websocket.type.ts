@@ -98,10 +98,11 @@ export const KnownWebSocketResponseSchema = z.discriminatedUnion("type", [
 ]);
 
 const UnknownWebSocketResponseSchema = z.object({
-  type: z.string().refine(
-    (type) => !["friend-online", "friend-offline"].includes(type),
-    { message: "known type is not allowed here" },
-  ),
+  type: z
+    .string()
+    .refine((type) => !["friend-online", "friend-offline"].includes(type), {
+      message: "known type is not allowed here",
+    }),
   content: z.unknown(),
 });
 
@@ -110,5 +111,7 @@ export const WebSocketResponseSchema = z.union([
   UnknownWebSocketResponseSchema,
 ]);
 
-export type KnownWebSocketResponse = z.infer<typeof KnownWebSocketResponseSchema>;
+export type KnownWebSocketResponse = z.infer<
+  typeof KnownWebSocketResponseSchema
+>;
 export type WebSocketResponse = z.infer<typeof WebSocketResponseSchema>;

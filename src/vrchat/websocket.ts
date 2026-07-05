@@ -6,8 +6,13 @@ import {
 } from "./websocket.type.ts";
 
 type WebSocketEvent = KnownWebSocketResponse["type"];
-export type WebSocketContent<TEvent extends WebSocketEvent> = Extract<KnownWebSocketResponse, { type: TEvent }>["content"];
-export type HandlerType<TEvent extends WebSocketEvent> = (content: WebSocketContent<TEvent>) => void;
+export type WebSocketContent<TEvent extends WebSocketEvent> = Extract<
+  KnownWebSocketResponse,
+  { type: TEvent }
+>["content"];
+export type HandlerType<TEvent extends WebSocketEvent> = (
+  content: WebSocketContent<TEvent>,
+) => void;
 type WebSocketHandlers = {
   [TEvent in WebSocketEvent]: Array<HandlerType<TEvent>>;
 };
@@ -24,7 +29,7 @@ const parseJson = (rawData: string): unknown | undefined => {
 export const vrcWS = () => {
   const VRCHAT_AUTH = process.env.VRCHAT_AUTH;
   if (VRCHAT_AUTH === undefined) {
-    throw "Please set a VRCHAT_AUTH"
+    throw "Please set a VRCHAT_AUTH";
   }
 
   const connection = new WebSocket(
@@ -33,7 +38,8 @@ export const vrcWS = () => {
       headers: {
         "User-Agent": "vrchat-status-bot/1.0.0",
       },
-    });
+    },
+  );
   const handlers: WebSocketHandlers = {
     "friend-online": [],
     "friend-offline": [],
@@ -46,7 +52,7 @@ export const vrcWS = () => {
 
     const parsed = WebSocketResponseSchema.safeParse(json);
     if (!parsed.success) {
-      console.error(parsed.error)
+      console.error(parsed.error);
     } else {
       const knownParsed = KnownWebSocketResponseSchema.safeParse(parsed.data);
       if (!knownParsed.success) return;
@@ -67,18 +73,17 @@ export const vrcWS = () => {
         }
       }
     }
-
-  })
+  });
 
   return {
     addHandler: <TEvent extends WebSocketEvent>(
       event: TEvent,
-      handler: (content: WebSocketContent<TEvent>) => void
+      handler: (content: WebSocketContent<TEvent>) => void,
     ) => {
       handlers[event].push(handler);
     },
     close: () => {
-      connection.close()
-    }
-  }
-}
+      connection.close();
+    },
+  };
+};
