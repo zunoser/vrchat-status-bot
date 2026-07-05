@@ -1,15 +1,18 @@
-import { type HandlerType, vrcWS } from "./vrchat/websocket.ts";
+import { vrcWS } from "./vrchat/websocket.ts";
 
-const logger: HandlerType<"friend-online"> = (content) => {
+const authToken = process.env.VRCHAT_AUTH;
+const vrcWs = vrcWS({
+  authToken: authToken || "",
+  userAgent: "vrchat-status-bot/1.0.0",
+});
+
+vrcWs.client.on("friend-online", (content) => {
   if (!content.user) {
     return;
   }
   console.log(`Online: ${content.user.displayName}`);
-};
+});
 
-const loggers: HandlerType<"friend-offline"> = (content) => {
+vrcWs.client.on("friend-offline", (content) => {
   console.log(`Offline: ${content.userId}`);
-};
-const vrcws = vrcWS();
-vrcws.addHandler("friend-online", logger);
-vrcws.addHandler("friend-offline", loggers);
+});

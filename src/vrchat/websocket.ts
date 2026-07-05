@@ -1,89 +1,53 @@
+import EventEmitter from "node:events";
+import type TypedEmitter from "typed-emitter";
 import WebSocket from "ws";
 import {
-  type KnownWebSocketResponse,
-  KnownWebSocketResponseSchema,
+  type RawWebSocketResponse,
+  RawWebSocketResponseSchema,
+  type WebSocketResponse,
   WebSocketResponseSchema,
 } from "./websocket.type.ts";
 
-type WebSocketEvent = KnownWebSocketResponse["type"];
-export type WebSocketContent<TEvent extends WebSocketEvent> = Extract<
-  KnownWebSocketResponse,
-  { type: TEvent }
->["content"];
-export type HandlerType<TEvent extends WebSocketEvent> = (
-  content: WebSocketContent<TEvent>,
-) => void;
-type WebSocketHandlers = {
-  [TEvent in WebSocketEvent]: Array<HandlerType<TEvent>>;
+type EmitterEvents = {
+  raw: (data: RawWebSocketResponse) => void;
+} & {
+  [T in WebSocketResponse["type"]]: (
+    data: Extract<WebSocketResponse, { type: T }>["content"],
+  ) => void;
 };
 
-const parseJson = (rawData: string): unknown | undefined => {
-  try {
-    return JSON.parse(rawData);
-  } catch (error) {
-    console.error(error);
-    return undefined;
-  }
+type VrcWSParams = {
+  authToken: string;
+  userAgent: string;
 };
 
-export const vrcWS = () => {
-  const VRCHAT_AUTH = process.env.VRCHAT_AUTH;
-  if (VRCHAT_AUTH === undefined) {
-    throw "Please set a VRCHAT_AUTH";
-  }
-
+export const vrcWS = ({ authToken, userAgent }: VrcWSParams) => {
   const connection = new WebSocket(
-    `wss://pipeline.vrchat.cloud/?authToken=${encodeURIComponent(VRCHAT_AUTH)}`,
+    `wss://pipeline.vrchat.cloud/?authToken=${encodeURIComponent(authToken)}`,
     {
       headers: {
-        "User-Agent": "vrchat-status-bot/1.0.0",
+        "User-Agent": userAgent,
       },
     },
   );
-  const handlers: WebSocketHandlers = {
-    "friend-online": [],
-    "friend-offline": [],
-  };
+
+  const client = new EventEmitter({
+    captureRejections: true,
+  }) as TypedEmitter<EmitterEvents>;
 
   connection.on("message", (e) => {
-    const rawData = e.toString();
-    const json = parseJson(rawData);
-    if (json === undefined) return;
+    const json = JSON.parse(e.toString());
+    const raw = RawWebSocketResponseSchema.parse(json);
+    client.emit("raw", raw);
 
-    const parsed = WebSocketResponseSchema.safeParse(json);
-    if (!parsed.success) {
-      console.error(parsed.error);
-    } else {
-      const knownParsed = KnownWebSocketResponseSchema.safeParse(parsed.data);
-      if (!knownParsed.success) return;
-
-      const data = knownParsed.data;
-      switch (data.type) {
-        case "friend-online": {
-          for (const x of handlers["friend-online"]) {
-            x(data.content);
-          }
-          break;
-        }
-        case "friend-offline": {
-          for (const x of handlers["friend-offline"]) {
-            x(data.content);
-          }
-          break;
-        }
-      }
+    const data = WebSocketResponseSchema.safeParse(raw);
+    if (data.success) {
+      client.emit(data.data.type, data.data.content);
     }
   });
 
   return {
-    addHandler: <TEvent extends WebSocketEvent>(
-      event: TEvent,
-      handler: (content: WebSocketContent<TEvent>) => void,
-    ) => {
-      handlers[event].push(handler);
-    },
-    close: () => {
-      connection.close();
-    },
+    client: client,
+    close: () => connection.close(),
   };
 };

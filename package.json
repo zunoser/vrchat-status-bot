@@ -8,8 +8,7 @@
     "check:write": "biome check --write .",
     "format": "biome format --write .",
     "lint": "biome lint .",
-    "start": "node src/main.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node --env-file=.env src/main.ts"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +31,7 @@
     "@biomejs/biome": "^2.5.2",
     "@types/node": "^26.0.0",
     "@types/ws": "^8.18.1",
+    "typed-emitter": "^2.1.0",
     "typescript": "^6.0.3"
   }
 }

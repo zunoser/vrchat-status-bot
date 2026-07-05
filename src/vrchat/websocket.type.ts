@@ -1,12 +1,18 @@
 import * as z from "zod";
 
-const parseJsonObject = (value: unknown): unknown => {
-  if (typeof value !== "string") return value;
-
+const parseJsonObject = (value: string, ctx: z.RefinementCtx) => {
   try {
     return JSON.parse(value);
   } catch {
-    return value;
+    ctx.addIssue({
+      code: "custom",
+      message: "Invalid JSON",
+      params: {
+        reason: "invalid_json",
+      },
+    });
+
+    return z.NEVER;
   }
 };
 
@@ -21,7 +27,7 @@ const BadgeSchema = z.object({
   updatedAt: z.string().nullable().optional(),
 });
 
-export const UserSchema = z.object({
+const UserSchema = z.object({
   ageVerificationStatus: z.enum(["18+", "hidden", "verified"]),
   ageVerified: z.boolean(),
   allowAvatarCopying: z.boolean(),
@@ -71,47 +77,35 @@ export const UserSchema = z.object({
   worldId: z.string().optional(),
 });
 
-export const KnownWebSocketResponseSchema = z.discriminatedUnion("type", [
+export const FriendOnlineSchema = z.object({
+  userId: z.string(),
+  platform: z.string(),
+  location: z.string(),
+  canRequestInvite: z.boolean(),
+  user: UserSchema,
+});
+
+export const FriendOfflineSchema = z.object({
+  userId: z.string(),
+  platform: z.string(),
+});
+
+export const WebSocketResponseSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("friend-online"),
-    content: z.preprocess(
-      parseJsonObject,
-      z.strictObject({
-        userId: z.string(),
-        platform: z.string(),
-        location: z.string(),
-        canRequestInvite: z.boolean(),
-        user: UserSchema,
-      }),
-    ),
+    content: FriendOnlineSchema,
   }),
   z.object({
     type: z.literal("friend-offline"),
-    content: z.preprocess(
-      parseJsonObject,
-      z.strictObject({
-        userId: z.string(),
-        platform: z.string(),
-      }),
-    ),
+    content: FriendOfflineSchema,
   }),
 ]);
 
-const UnknownWebSocketResponseSchema = z.object({
-  type: z
-    .string()
-    .refine((type) => !["friend-online", "friend-offline"].includes(type), {
-      message: "known type is not allowed here",
-    }),
-  content: z.unknown(),
+export type WebSocketResponse = z.infer<typeof WebSocketResponseSchema>;
+
+export const RawWebSocketResponseSchema = z.object({
+  type: z.string(),
+  content: z.string().transform(parseJsonObject),
 });
 
-export const WebSocketResponseSchema = z.union([
-  KnownWebSocketResponseSchema,
-  UnknownWebSocketResponseSchema,
-]);
-
-export type KnownWebSocketResponse = z.infer<
-  typeof KnownWebSocketResponseSchema
->;
-export type WebSocketResponse = z.infer<typeof WebSocketResponseSchema>;
+export type RawWebSocketResponse = z.infer<typeof RawWebSocketResponseSchema>;
