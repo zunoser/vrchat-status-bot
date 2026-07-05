@@ -2,27 +2,36 @@ import EventEmitter from "node:events";
 import type TypedEmitter from "typed-emitter";
 import WebSocket from "ws";
 import {
-  type RawWebSocketResponse,
-  RawWebSocketResponseSchema,
-  type WebSocketResponse,
-  WebSocketResponseSchema,
+  type RawVRChatWebSocketEvent,
+  RawVRChatWebSocketEventSchema,
+  type VRChatWebSocketEvent,
+  VRChatWebSocketEventSchema,
 } from "./websocket.type.ts";
 
-type EmitterEvents = {
-  raw: (data: RawWebSocketResponse) => void;
+type VRChatWebSocketClientEvents = {
+  error: (error: unknown) => void;
+  raw: (event: RawVRChatWebSocketEvent) => void;
+  unhandled: (event: RawVRChatWebSocketEvent) => void;
 } & {
-  [T in WebSocketResponse["type"]]: (
-    data: Extract<WebSocketResponse, { type: T }>["content"],
+  [T in VRChatWebSocketEvent["type"]]: (
+    data: Extract<VRChatWebSocketEvent, { type: T }>["content"],
   ) => void;
 };
 
-type VrcWSParams = {
+type CreateVRChatWebSocketClientOptions = {
   authToken: string;
   userAgent: string;
 };
 
-export const vrcWS = ({ authToken, userAgent }: VrcWSParams) => {
-  const connection = new WebSocket(
+class VRChatPipelineWebSocket extends WebSocket {
+  static captureRejections = true;
+}
+
+export const createVRChatWebSocketClient = ({
+  authToken,
+  userAgent,
+}: CreateVRChatWebSocketClientOptions) => {
+  const connection = new VRChatPipelineWebSocket(
     `wss://pipeline.vrchat.cloud/?authToken=${encodeURIComponent(authToken)}`,
     {
       headers: {
@@ -33,21 +42,26 @@ export const vrcWS = ({ authToken, userAgent }: VrcWSParams) => {
 
   const client = new EventEmitter({
     captureRejections: true,
-  }) as TypedEmitter<EmitterEvents>;
+  }) as TypedEmitter<VRChatWebSocketClientEvents>;
 
-  connection.on("message", (e) => {
+  connection.on("error", (error) => {
+    client.emit("error", error);
+  });
+
+  connection.on("message", async (e) => {
     const json = JSON.parse(e.toString());
-    const raw = RawWebSocketResponseSchema.parse(json);
-    client.emit("raw", raw);
+    const rawEvent = RawVRChatWebSocketEventSchema.parse(json);
+    client.emit("raw", rawEvent);
 
-    const data = WebSocketResponseSchema.safeParse(raw);
-    if (data.success) {
-      client.emit(data.data.type, data.data.content);
+    const event = VRChatWebSocketEventSchema.safeParse(rawEvent);
+    if (event.success) {
+      client.emit(event.data.type, event.data.content);
+    } else {
+      client.emit("unhandled", rawEvent);
     }
   });
 
-  return {
-    client: client,
+  return Object.assign(client, {
     close: () => connection.close(),
-  };
+  });
 };

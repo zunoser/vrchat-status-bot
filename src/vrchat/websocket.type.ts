@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-const parseJsonObject = (value: string, ctx: z.RefinementCtx) => {
+const parseJsonContent = (value: string, ctx: z.RefinementCtx) => {
   try {
     return JSON.parse(value);
   } catch {
@@ -90,7 +90,7 @@ export const FriendOfflineSchema = z.object({
   platform: z.string(),
 });
 
-export const WebSocketResponseSchema = z.discriminatedUnion("type", [
+export const VRChatWebSocketEventSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("friend-online"),
     content: FriendOnlineSchema,
@@ -101,11 +101,13 @@ export const WebSocketResponseSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
-export type WebSocketResponse = z.infer<typeof WebSocketResponseSchema>;
+export type VRChatWebSocketEvent = z.infer<typeof VRChatWebSocketEventSchema>;
 
-export const RawWebSocketResponseSchema = z.object({
+export const RawVRChatWebSocketEventSchema = z.object({
   type: z.string(),
-  content: z.string().transform(parseJsonObject),
+  content: z.string().transform(parseJsonContent),
 });
 
-export type RawWebSocketResponse = z.infer<typeof RawWebSocketResponseSchema>;
+export type RawVRChatWebSocketEvent = z.infer<
+  typeof RawVRChatWebSocketEventSchema
+>;
