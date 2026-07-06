@@ -1,5 +1,5 @@
+import { createVRChatWebSocketClient } from "@vrchat-status-bot/vrchat";
 import { z } from "zod";
-import { createVRChatWebSocketClient } from "./vrchat/websocket.ts";
 
 const EnvSchema = z.object({
   VRCHAT_AUTH: z.string(),
