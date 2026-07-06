@@ -1,15 +1,28 @@
-import { type HandlerType, vrcWS } from "./vrchat/websocket.ts";
+import { z } from "zod";
+import { createVRChatWebSocketClient } from "./vrchat/websocket.ts";
 
-const logger: HandlerType<"friend-online"> = (content) => {
-  if (!content.user) {
-    return;
-  }
+const EnvSchema = z.object({
+  VRCHAT_AUTH: z.string(),
+});
+const env = EnvSchema.parse(process.env);
+
+const vrchatClient = createVRChatWebSocketClient({
+  authToken: env.VRCHAT_AUTH,
+  userAgent: "zunoser/vrchat-status-bot/1.0.0",
+});
+
+vrchatClient.on("error", (error) => {
+  console.error(error);
+});
+
+vrchatClient.on("friend-online", (content) => {
   console.log(`Online: ${content.user.displayName}`);
-};
+});
 
-const loggers: HandlerType<"friend-offline"> = (content) => {
+vrchatClient.on("friend-offline", (content) => {
   console.log(`Offline: ${content.userId}`);
-};
-const vrcws = vrcWS();
-vrcws.addHandler("friend-online", logger);
-vrcws.addHandler("friend-offline", loggers);
+});
+
+vrchatClient.on("unhandled", (event) => {
+  console.warn(`Unhandled event: ${event.type}`);
+});
