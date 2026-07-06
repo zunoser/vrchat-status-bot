@@ -1,0 +1,17 @@
+{
+  "name": "@vrchat-status-bot/logger",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "biome check .",
+    "check:write": "biome check --write .",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "dev": "node --env-file=../../.env src/main.ts"
+  },
+  "dependencies": {
+    "@vrchat-status-bot/vrchat": "workspace:*",
+    "zod": "^4.4.3"
+  }
+}

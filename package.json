@@ -1,14 +1,16 @@
 {
   "name": "vrchat-status-bot",
   "version": "1.0.0",
-  "description": "",
-  "main": "main.ts",
+  "description": "VRChat status bot workspace",
+  "private": true,
   "scripts": {
-    "check": "biome check .",
-    "check:write": "biome check --write .",
-    "format": "biome format --write .",
-    "lint": "biome lint .",
-    "dev": "node --env-file=.env src/main.ts"
+    "check": "pnpm -r check",
+    "check:write": "pnpm -r check:write",
+    "format": "pnpm -r format",
+    "lint": "pnpm -r lint",
+    "typecheck": "tsc --noEmit",
+    "dev:logger": "pnpm --filter @vrchat-status-bot/logger dev",
+    "dev:discord": "pnpm --filter @vrchat-status-bot/discord dev"
   },
   "keywords": [],
   "author": "",
@@ -21,16 +23,9 @@
     }
   },
   "type": "module",
-  "dependencies": {
-    "discord.js": "^14.26.4",
-    "ws": "^8.21.0",
-    "zod": "^4.4.3"
-  },
   "devDependencies": {
     "@biomejs/biome": "^2.5.2",
     "@types/node": "^26.0.0",
-    "@types/ws": "^8.18.1",
-    "typed-emitter": "^2.1.0",
     "typescript": "^6.0.3"
   }
 }

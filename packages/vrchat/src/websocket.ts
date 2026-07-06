@@ -8,7 +8,7 @@ import {
   VRChatWebSocketEventSchema,
 } from "./websocket.type.ts";
 
-type VRChatWebSocketClientEvents = {
+export type VRChatWebSocketClientEvents = {
   error: (error: unknown) => void;
   raw: (event: RawVRChatWebSocketEvent) => void;
   unhandled: (event: RawVRChatWebSocketEvent) => void;

@@ -206,16 +206,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      discord.js:
-        specifier: ^14.26.4
-        version: 14.26.4
-      ws:
-        specifier: ^8.21.0
-        version: 8.21.0
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.5.2
@@ -223,15 +213,46 @@ importers:
       '@types/node':
         specifier: ^26.0.0
         version: 26.0.0
-      '@types/ws':
-        specifier: ^8.18.1
-        version: 8.18.1
-      typed-emitter:
-        specifier: ^2.1.0
-        version: 2.1.0
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+
+  apps/discord:
+    dependencies:
+      '@vrchat-status-bot/vrchat':
+        specifier: workspace:*
+        version: link:../../packages/vrchat
+      discord.js:
+        specifier: ^14.26.4
+        version: 14.26.4
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+
+  apps/logger:
+    dependencies:
+      '@vrchat-status-bot/vrchat':
+        specifier: workspace:*
+        version: link:../../packages/vrchat
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+
+  packages/vrchat:
+    dependencies:
+      typed-emitter:
+        specifier: ^2.1.0
+        version: 2.1.0
+      ws:
+        specifier: ^8.21.0
+        version: 8.21.0
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
 
 packages:
 

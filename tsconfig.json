@@ -1,10 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
+    "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "lib": ["ESNext"],
+    "types": ["node"],
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "allowImportingTsExtensions": true,
-    "types": ["node"]
-  }
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["apps/**/*.ts", "packages/**/*.ts"]
 }
