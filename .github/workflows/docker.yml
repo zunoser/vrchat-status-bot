@@ -13,6 +13,10 @@ jobs:
       contents: read
       packages: write
 
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
+      TAG: latest
+
     strategy:
       fail-fast: false
       matrix:
@@ -38,10 +42,9 @@ jobs:
 
       - name: Compute tags
         id: vars
-        shell: bash
         run: |
-          echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
-          echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Build and push (${{ matrix.target }})
         uses: docker/build-push-action@v6
@@ -50,7 +53,7 @@ jobs:
           target: ${{ matrix.target }}
           push: true
           tags: |
-            ${{ steps.vars.outputs.image }}:latest-${{ matrix.suffix }}
-            ${{ steps.vars.outputs.image }}:sha-${{ steps.vars.outputs.short_sha }}-${{ matrix.suffix }}
+            ${{ env.IMAGE }}:${{ env.TAG }}-${{ matrix.suffix }}
+            ${{ env.IMAGE }}:sha-${{ steps.vars.outputs.short_sha }}-${{ matrix.suffix }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
