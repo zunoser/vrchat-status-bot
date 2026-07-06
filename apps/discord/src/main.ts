@@ -1,5 +1,5 @@
 import { createVRChatWebSocketClient } from "@vrchat-status-bot/vrchat";
-import { Client, Events, GatewayIntentBits, WebhookClient } from "discord.js";
+import { WebhookClient } from "discord.js";
 import { z } from "zod";
 
 const EnvSchema = z.object({
