@@ -19,19 +19,15 @@ const vrchatClient = createVRChatWebSocketClient({
   userAgent: "zunoser/vrchat-status-bot/1.0.0",
 });
 
-vrchatClient.on("friend-online", (data) => {
+vrchatClient.on("friend-online", async (data) => {
   if (data.userId === env.FRIEND_USER_ID) {
-    webhookClient.send({
-      content: env.ONLINE_MESSAGE,
-    });
+    await webhookClient.send({ content: env.ONLINE_MESSAGE });
   }
 });
 
-vrchatClient.on("friend-offline", (data) => {
+vrchatClient.on("friend-offline", async (data) => {
   if (data.userId === env.FRIEND_USER_ID) {
-    webhookClient.send({
-      content: env.OFFLINE_MESSAGE,
-    });
+    await webhookClient.send({ content: env.OFFLINE_MESSAGE });
   }
 });
 
