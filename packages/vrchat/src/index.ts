@@ -10,5 +10,3 @@ export {
   RawVRChatWebSocketEventSchema,
   VRChatWebSocketEventSchema,
 } from "./websocket.type.ts";
-
-
